@@ -106,34 +106,28 @@ def course_info(data):
         section_code = sect['sectionCode']
         section_type = sect['sectionType']
         days = sect['meetings'][0]['days']
-        times = sect['meetings'][0]['time']
         display_time = sect['meetings'][0]['time']
         instructor_name = sect['instructors'][0]
         building = sect['meetings'][0]['bldg']
         section_type = sect['sectionType']
         course_title = data['schools'][0]['departments'][0]['courses'][0]['courseTitle']
-        
-        if section_type not in
-
-        '''
-        if times == "TBA":
-            return [[],[]]
-        
-        times = convert_time(times)
 
         details = {
             'sectionNum': section_num,
             'sectionCode': section_code,
             'sectionType': section_type,
             'days': days,
-            'times': times,
             'display_time': display_time,
             'instructor_name': instructor_name,
             'building': building,
             'section_type': section_type,
             'course_title': course_title
             }
-        '''
+        
+        if section_type not in course_sections:
+            course_sections[section_type] = [details]
+        else:
+            course_sections[section_type].append(details)
 
     return course_sections
 
@@ -179,18 +173,8 @@ def course_info(data):
 #     return course_sections
 
 
-def create_course_combos(course_names):
-    course_combos = []
-    for course_name in course_names:
-        possibles = []
-        for lec, discussions_list in course_name:
-            if discussions_list:
-                for discussion in discussions_list:
-                    possibles.append([lec, discussion])
-            else:
-                possibles.append([lec])
-        course_combos.append(possibles)
-    return course_combos
+def create_course_combos(course_sections):
+    return product(course_sections.keys)
 
 
 def possible_schedules(course_combos):
