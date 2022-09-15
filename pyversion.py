@@ -1,4 +1,4 @@
-from re import X
+from re import L, X
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -60,7 +60,6 @@ def _convert_data(data: str):
     return converted_data 
 '''
 To-do
-- rework convert time
 - rework time overlap
 '''
 
@@ -84,11 +83,11 @@ def convert_time(time: str): #time is in str format 5:00p and then converted to 
 
 
 def time_overlap(course_1, course_2):  # time is in ' 5:00- 5:50p'
-    if course_1 == [] or course_2 == []:
+    if "TBA" in [course_1['display_time'], course_2['display_time']]:
         return False
 
-    s_1, e_1 = course_1['times']
-    s_2, e_2 = course_2['times']
+    s_1, e_1 = convert_time(course_1['display_time'])
+    s_2, e_2 = convert_time(course_2['display_time'])
 
     return s_1 <= s_2 <= e_1 or s_2 <= s_1 <= e_2  
 
@@ -136,36 +135,28 @@ def create_course_combos(all_courses):
         answer.append(list(product(*course.values())))
     return answer
 
+def _flatten(course_combos):
+    if type(course_combos) != dict and list(course_combos) == []:
+        return []
+    elif type(course_combos) == dict:
+        return [course_combos]
+    if type(course_combos) != dict:
+        return _flatten(course_combos[0]) + _flatten(course_combos[1:])
+    return course_combos[:1] + _flatten(course_combos[1:])
+
+def check_possible(schedule):
+    schedule = _flatten(schedule)
+    for i in range(len(schedule)):
+        for j in range(i + 1, len(schedule)):
+            if time_overlap(schedule[i], schedule[j]):
+                return False
+    return True
+
 
 def possible_schedules(course_combos):
     possible = []
     for schedule in product(*course_combos):
-        # checks overlap for all combos
-        # assumes 3 courses
-
-        if len(schedule[0]) == 1:
-            schedule[0].append([])
-        if len(schedule[1]) == 1:
-            schedule[1].append([])
-        if len(schedule[2]) == 1:
-            schedule[2].append([])
-
-        if not (time_overlap(schedule[0][0], schedule[1][0])
-                or time_overlap(schedule[0][0], schedule[1][1])
-                or time_overlap(schedule[0][0], schedule[2][0])
-                or time_overlap(schedule[0][0], schedule[2][1])
-
-                or time_overlap(schedule[0][1], schedule[1][0])
-                or time_overlap(schedule[0][1], schedule[1][1])
-                or time_overlap(schedule[0][1], schedule[2][0])
-                or time_overlap(schedule[0][1], schedule[2][1])
-
-                or time_overlap(schedule[1][0], schedule[2][0])
-                or time_overlap(schedule[1][0], schedule[2][1])
-
-                or time_overlap(schedule[1][1], schedule[2][0])
-                or time_overlap(schedule[1][1], schedule[2][1])
-        ):
+        if not check_possible(schedule):
             possible.append(schedule)
 
     return possible
@@ -205,36 +196,15 @@ course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedul
 course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=ANTHRO&courseNumber=2A'))
 course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=HISTORY&courseNumber=15C'))
 
-
-
-
-what = list(course_1.values())
-print(what)
-print("---")
-print(list(product(*what)))
-print("---")
-print(create_course_combos([course_1, course_2, course_3]))
-
-# x = combinations(what, len(course_1))
-# for i in x:
-#     print(i)
-#     break
-
-'''
-x = create_course_combos([course_1.values])
-for i in product(*x):
-    print(i)
-    break
-'''
-
-'''
-
+x = create_course_combos([course_1, course_2, course_3])
 y = possible_schedules(x)
 
 
 for s in possible_schedules(x):
     print(s)
 
+
+'''
 # for s in possible_schedules(x):
 #     print(get_time_days(s))
 
