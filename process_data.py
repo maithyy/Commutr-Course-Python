@@ -1,68 +1,17 @@
 
-import urllib.request
-import urllib.error
-import json
-import sys
+from grab_data import get_from_web
 from itertools import product
 
-def get_from_web(url: str) -> dict or list:
-    '''
-    Requests JSON formatted data from the API identified by the
-    given URL and returns the data as a Python object
-    '''
-    response = None
-
-    try:
-        request = urllib.request.Request(url)
-
-        response = urllib.request.urlopen(request)
-
-    except urllib.error.HTTPError as exception:
-        print_web_error_message(exception.getcode(), url, 'NOT 200')
-
-    except (urllib.error.URLError, ValueError):
-        print_web_error_message(None, url, 'NETWORK')
-
-    try:
-        json_data = response.read().decode(encoding='utf-8')
-        data = _convert_data(json_data)
-        return data
-
-    except (json.JSONDecodeError, ValueError):
-        print_web_error_message(response.getcode(), url, 'FORMAT')
-
-    finally:
-        if response:
-            response.close()
-            
-def print_web_error_message(status: int or None, url: str, error: str) -> None:
-    '''
-    Prints failure message identifying the status of the HTTP request, if applicable,
-    and the specific URL and error that caused failure
-    '''
-    print('FAILED')
-    if status is not None:
-        print(f'{status} {url}')
-    else:
-        print(url)
-    print(error)
-    sys.exit(1)
-    
-def _convert_data(data: str):
-    '''Converts the given JSON formatted data to a Python object'''
-    converted_data = json.loads(data)
-
-    # Raises ValueError if json.loads returns an empty object
-    if not converted_data:
-        raise ValueError
-    return converted_data 
 '''
 To-do
 - handle no data from api
 - figure out ics link i 4got lolz I%26C%20SCI
 '''
 
-def convert_time(time: str): #time is in str format 5:00p and then converted to 1700, edge cases- no leading 0
+def convert_time(time: str) -> tuple:
+    '''
+    Given a string in the example form ' 5:00-7:00p ', return a two tuple consisting of the start and end time in seconds.
+    '''
     if time[-1] == 'p':
         start, end = time[:-1].split('-')
     else:
@@ -79,9 +28,10 @@ def convert_time(time: str): #time is in str format 5:00p and then converted to 
 
     return (start_num*60*60+start_min, end_num*60*60+end_min)
 
-
-
-def time_overlap(course_1, course_2):  # time is in ' 5:00- 5:50p'
+def time_overlap(course_1: dict, course_2: dict) -> bool:
+    '''
+    Given two course schedule dictionaries, return True if their times overlap and False otherwise.
+    '''
     if "TBA" in [course_1['display_time'], course_2['display_time']]:
         return False
 
@@ -91,15 +41,17 @@ def time_overlap(course_1, course_2):  # time is in ' 5:00- 5:50p'
     return s_1 <= s_2 <= e_1 or s_2 <= s_1 <= e_2  
 
 
-
-def course_info(data):
+def course_info(data) -> dict:
+    '''
+    Given a json dict, return a dictionary where the
+    keys correspond to different section types
+    and the values are lists of dictionaries
+    of the specific section.
+    '''
     course_sections = {}
-
     sections = data['schools'][0]['departments'][0]['courses'][0]['sections']
 
-    
     for sect in sections:
-        
         section_num = sect['sectionNum']
         section_code = sect['sectionCode']
         section_type = sect['sectionType']
@@ -135,13 +87,19 @@ def course_info(data):
     return course_sections
 
 
-def create_course_combos(all_courses):
+def create_course_combos(all_courses: list) -> list:
+    '''
+    Given a list of all the course info dictionaries, return a nested list of course combinations.
+    '''
     answer = []
     for course in all_courses:
         answer.append(list(product(*course.values())))
     return answer
 
 def _flatten(course_combos):
+    '''
+    Flattens nested tuples of lists to a single list of schedule dictionaries.
+    '''
     if type(course_combos) != dict and list(course_combos) == []:
         return []
     elif type(course_combos) == dict:
@@ -150,7 +108,11 @@ def _flatten(course_combos):
         return _flatten(course_combos[0]) + _flatten(course_combos[1:])
     return course_combos[:1] + _flatten(course_combos[1:])
 
-def check_possible(schedule):
+def check_possible(schedule: list) -> bool:
+    '''
+    Given a schedule (list of different classes with its own dictionary),
+    return False if the schedule has a time overlap, else True.
+    '''
     for i in range(len(schedule)):
         for j in range(i + 1, len(schedule)):
             if time_overlap(schedule[i], schedule[j]):
@@ -158,17 +120,24 @@ def check_possible(schedule):
     return True
 
 
-def possible_schedules(course_combos):
+def possible_schedules(course_combos: list) -> list:
+    '''
+    Given a list of schedules (list of different classes with its own dictionary),
+    returns a list of possible schedules.
+    '''
     possible = []
     for schedule in product(*course_combos):
         schedule = _flatten(schedule)
         if not check_possible(schedule):
             possible.append(schedule)
-
     return possible
 
-def get_time_days(schedule):
-    total_time = 0
+def get_time_days(schedule) -> tuple:
+    '''
+    Given a schedule (list of different classes with its own dictionary),
+    returns the schedule, the number of days on campus it requires you,
+    and the combined time it requires you to be on campus.
+    '''
     time_gap = 0
     
     day_times = {}
@@ -186,7 +155,12 @@ def get_time_days(schedule):
 
     return schedule, len(day_times), time_gap
 
-def optimized_schedules(possible_schedules):
+def optimized_schedules(possible_schedules: list) -> list:
+    '''
+    Given a list of possible schedules, returns a list
+    sorted by most optimal (least days on campus and
+    then least time on campus).
+    '''
     schedules_data = []
     for schedule in possible_schedules:
         schedules_data.append(get_time_days(schedule))
@@ -197,9 +171,9 @@ def optimized_schedules(possible_schedules):
     return schedules_data
 
 
-
-
 course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=HISTORY&courseNumber=15C'))
+print(course_1)
+'''
 course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=51'))
 course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=45C'))
 
@@ -208,3 +182,4 @@ y = possible_schedules(x)
 z = optimized_schedules(y)
 
 print(z[0])
+'''
