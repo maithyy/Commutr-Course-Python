@@ -78,7 +78,7 @@ def convert_time(time: str): #time is in str format 5:00p and then converted to 
             start_num += 12
         end_num += 12
 
-    return (start_num*60+start_min, end_num*60+end_min)
+    return (start_num*60*60+start_min, end_num*60*60+end_min)
 
 
 
@@ -105,17 +105,24 @@ def course_info(data):
         section_code = sect['sectionCode']
         section_type = sect['sectionType']
         days = sect['meetings'][0]['days']
+        times = sect['meetings'][0]['time']
         display_time = sect['meetings'][0]['time']
         instructor_name = sect['instructors'][0]
         building = sect['meetings'][0]['bldg']
         course_title = data['schools'][0]['departments'][0]['courses'][0]['courseTitle']
 
+        if times != "TBA":
+            times = convert_time(times)
+        else:
+            times = (-1, -1)
+        
         details = {
             'sectionNum': section_num,
             'sectionCode': section_code,
             'sectionType': section_type,
             'days': days,
             'display_time': display_time,
+            'times': times,
             'instructor_name': instructor_name,
             'building': building,
             'course_title': course_title
@@ -145,7 +152,6 @@ def _flatten(course_combos):
     return course_combos[:1] + _flatten(course_combos[1:])
 
 def check_possible(schedule):
-    schedule = _flatten(schedule)
     for i in range(len(schedule)):
         for j in range(i + 1, len(schedule)):
             if time_overlap(schedule[i], schedule[j]):
@@ -156,6 +162,7 @@ def check_possible(schedule):
 def possible_schedules(course_combos):
     possible = []
     for schedule in product(*course_combos):
+        schedule = _flatten(schedule)
         if not check_possible(schedule):
             possible.append(schedule)
 
@@ -163,23 +170,22 @@ def possible_schedules(course_combos):
 
 def get_time_days(schedule):
     total_time = 0
-    days = 0
+    time_gap = 0
     
-    day_times = {'M':[], 'Tu':[], 'W':[], 'Th':[], 'F':[]}
-    # day_gaps = {'M':[], 'Tu':[], 'W':[], 'Th':[], 'F':[]}
-    
+    day_times = {}
+
     for course in schedule:
-        for key in day_times:
-            if key in course[0]['days']:
-                day_times[key].append(course[0]['times'])
+        if course['days'] in day_times:
+            day_times[course['days']].append(course)
+        else:
+            day_times[course['days']] = [course]
+    
+    for day in day_times.values():
+        latest = max(course['times'][1] for course in day)
+        earliest = min(course['times'][0] for course in day)
+        time_gap += (latest-earliest)
 
-    for times in day_times.values():
-        if times:
-            days += 1
-            times.sort()
-            total_time += times[-1][1] - times[0][0]
-
-    return schedule, days, total_time/days 
+    return schedule, len(day_times), time_gap
 
 def optimized_schedules(possible_schedules):
     schedules_data = []
@@ -198,14 +204,6 @@ course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedul
 
 x = create_course_combos([course_1, course_2, course_3])
 y = possible_schedules(x)
+z = optimized_schedules(y)
 
-
-for s in possible_schedules(x):
-    print(s)
-
-
-'''
-# for s in possible_schedules(x):
-#     print(get_time_days(s))
-
-'''
+print(z[0])
