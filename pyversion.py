@@ -60,7 +60,8 @@ def _convert_data(data: str):
     return converted_data 
 '''
 To-do
-- rework time overlap
+- handle no data from api
+- figure out ics link i 4got lolz
 '''
 
 def convert_time(time: str): #time is in str format 5:00p and then converted to 1700, edge cases- no leading 0
@@ -198,9 +199,9 @@ def optimized_schedules(possible_schedules):
     return schedules_data
 
 
-course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=CHEM&courseNumber=1C'))
-course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=ANTHRO&courseNumber=2A'))
-course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=HISTORY&courseNumber=15C'))
+course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=HIST&courseNumber=15C'))
+course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%262%SCI&courseNumber=51'))
+course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%262%SCI&courseNumber=45C'))
 
 x = create_course_combos([course_1, course_2, course_3])
 y = possible_schedules(x)
