@@ -1,45 +1,13 @@
 
-from grab_data import get_from_web
+from cc_request import get_from_web
 from itertools import product
+import cc_ui as UI
 
 '''
 To-do
 - handle no data from api
 - figure out ics link i 4got lolz I%26C%20SCI
 '''
-
-def convert_time(time: str) -> tuple:
-    '''
-    Given a string in the example form ' 5:00-7:00p ', return a two tuple consisting of the start and end time in seconds.
-    '''
-    if time[-1] == 'p':
-        start, end = time[:-1].split('-')
-    else:
-        start,end = time.split('-')
-    start_num = int(start.split(':')[0].strip())
-    start_min = int(start.split(':')[1].strip())
-    end_num = int(end.split(":")[0].strip())
-    end_min = int(end.split(':')[1].strip())
-        
-    if time[-1] == 'p':
-        if start_num <= end_num:
-            start_num += 12
-        end_num += 12
-
-    return (start_num*60*60+start_min, end_num*60*60+end_min)
-
-def time_overlap(course_1: dict, course_2: dict) -> bool:
-    '''
-    Given two course schedule dictionaries, return True if their times overlap and False otherwise.
-    '''
-    if "TBA" in [course_1['display_time'], course_2['display_time']]:
-        return False
-
-    s_1, e_1 = convert_time(course_1['display_time'])
-    s_2, e_2 = convert_time(course_2['display_time'])
-
-    return s_1 <= s_2 <= e_1 or s_2 <= s_1 <= e_2  
-
 
 def course_info(data) -> dict:
     '''
@@ -50,6 +18,7 @@ def course_info(data) -> dict:
     '''
     course_sections = {}
     sections = data['schools'][0]['departments'][0]['courses'][0]['sections']
+    name = f"{data['schools'][0]['departments'][0]['courses'][0]['deptCode']} {data['schools'][0]['departments'][0]['courses'][0]['courseNumber']}"
 
     for sect in sections:
         section_num = sect['sectionNum']
@@ -68,6 +37,7 @@ def course_info(data) -> dict:
             times = (-1, -1)
         
         details = {
+            'name': name,
             'sectionNum': section_num,
             'sectionCode': section_code,
             'sectionType': section_type,
@@ -108,6 +78,38 @@ def _flatten(course_combos):
         return _flatten(course_combos[0]) + _flatten(course_combos[1:])
     return course_combos[:1] + _flatten(course_combos[1:])
 
+def convert_time(time: str) -> tuple:
+    '''
+    Given a string in the example form ' 5:00-7:00p ', return a two tuple consisting of the start and end time in seconds.
+    '''
+    if time[-1] == 'p':
+        start, end = time[:-1].split('-')
+    else:
+        start,end = time.split('-')
+    start_num = int(start.split(':')[0].strip())
+    start_min = int(start.split(':')[1].strip())
+    end_num = int(end.split(":")[0].strip())
+    end_min = int(end.split(':')[1].strip())
+        
+    if time[-1] == 'p':
+        if start_num <= end_num:
+            start_num += 12
+        end_num += 12
+
+    return (start_num*60*60+start_min, end_num*60*60+end_min)
+
+def time_overlap(course_1: dict, course_2: dict) -> bool:
+    '''
+    Given two course schedule dictionaries, return True if their times overlap and False otherwise.
+    '''
+    if "TBA" in [course_1['display_time'], course_2['display_time']]:
+        return False
+
+    s_1, e_1 = convert_time(course_1['display_time'])
+    s_2, e_2 = convert_time(course_2['display_time'])
+
+    return s_1 <= s_2 <= e_1 or s_2 <= s_1 <= e_2  
+
 def check_possible(schedule: list) -> bool:
     '''
     Given a schedule (list of different classes with its own dictionary),
@@ -118,7 +120,6 @@ def check_possible(schedule: list) -> bool:
             if time_overlap(schedule[i], schedule[j]):
                 return False
     return True
-
 
 def possible_schedules(course_combos: list) -> list:
     '''
@@ -172,8 +173,6 @@ def optimized_schedules(possible_schedules: list) -> list:
 
 
 course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=HISTORY&courseNumber=15C'))
-print(course_1)
-'''
 course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=51'))
 course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=45C'))
 
@@ -181,5 +180,4 @@ x = create_course_combos([course_1, course_2, course_3])
 y = possible_schedules(x)
 z = optimized_schedules(y)
 
-print(z[0])
-'''
+UI.print_schedule(z[0][0])
