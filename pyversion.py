@@ -109,7 +109,6 @@ def course_info(data):
         display_time = sect['meetings'][0]['time']
         instructor_name = sect['instructors'][0]
         building = sect['meetings'][0]['bldg']
-        section_type = sect['sectionType']
         course_title = data['schools'][0]['departments'][0]['courses'][0]['courseTitle']
 
         details = {
@@ -120,7 +119,6 @@ def course_info(data):
             'display_time': display_time,
             'instructor_name': instructor_name,
             'building': building,
-            'section_type': section_type,
             'course_title': course_title
             }
         
@@ -132,49 +130,11 @@ def course_info(data):
     return course_sections
 
 
-# def course_info(data):
-#     course_sections = []
-
-#     sections = data['schools'][0]['departments'][0]['courses'][0]['sections']
-#     inner = []
-#     secondary = []
-#     starting_section = "A"
-    
-#     for sect in sections:
-#         section_num = sect['sectionNum']
-#         section_code = sect['sectionCode']
-#         section_type = sect['sectionType']
-#         days = sect['meetings'][0]['days']
-#         times = convert_time(sect['meetings'][0]['time'])
-#         if section_num.isnumeric():
-#             section_num = starting_section + section_num
-#         details = {
-#             'sectionNum': section_num,
-#             'sectionCode': section_code,
-#             'sectionType': section_type,
-#             'days': days,
-#             'times': times
-#             }
-        
-#         if section_num.isalpha():
-#             if secondary:
-#                 inner.append(secondary)
-#                 course_sections.append(inner)
-#                 inner = []
-#             starting_section = section_num
-#             inner.append(details)
-#             secondary = []
-#         else:
-#             secondary.append(details)
-
-#     if not course_sections:
-#         return [[details, secondary]]
-    
-#     return course_sections
-
-
-def create_course_combos(course_sections):
-    return product(course_sections.keys)
+def create_course_combos(all_courses):
+    answer = []
+    for course in all_courses:
+        answer.append(list(product(*course.values())))
+    return answer
 
 
 def possible_schedules(course_combos):
@@ -245,15 +205,32 @@ course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedul
 course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=ANTHRO&courseNumber=2A'))
 course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=HISTORY&courseNumber=15C'))
 
-print(course_1)
+
+
+
+what = list(course_1.values())
+print(what)
+print("---")
+print(list(product(*what)))
+print("---")
+print(create_course_combos([course_1, course_2, course_3]))
+
+# x = combinations(what, len(course_1))
+# for i in x:
+#     print(i)
+#     break
+
+'''
+x = create_course_combos([course_1.values])
+for i in product(*x):
+    print(i)
+    break
+'''
 
 '''
 
-x = create_course_combos([course_1, course_2, course_3])
 y = possible_schedules(x)
 
-# for i in product(*x):
-#     print(i)
 
 for s in possible_schedules(x):
     print(s)
