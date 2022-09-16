@@ -1,8 +1,19 @@
-
 import urllib.request
 import urllib.error
+import urllib.parse
 import json
 import sys
+
+BASE_URL = 'https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department='
+
+def encode_url(class_list: list[tuple]) -> list[str]:
+    '''Given a list of tuples of the classes, return a list of the class's corresponding encoded url's.'''
+    url_list = []
+    for deptcode, coursenum in class_list:
+        deptcode = urllib.parse.quote(deptcode, safe='')
+        coursenum = urllib.parse.quote(coursenum, safe='')
+        url_list.append(f"{BASE_URL}{deptcode}&courseNumber={coursenum}")
+    return url_list
 
 def get_from_web(url: str) -> dict or list:
     '''
@@ -54,4 +65,4 @@ def _convert_data(data: str):
     # Raises ValueError if json.loads returns an empty object
     if not converted_data:
         raise ValueError
-    return converted_data 
+    return converted_data
