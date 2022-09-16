@@ -14,6 +14,9 @@ def prompt_classes():
 
     while True:
         answer = input("\nWould you like to add more classes? (Y/N): ")
+        while answer.upper() not in ["Y", "N"]:
+            print("Incorrect input! Please input only Y or N.")
+            answer = input("\nWould you like to add more classes? (Y/N): ")
         if answer.upper() == "N":
             break
         print(f"\nClass {len(class_list) + 1} Information")
@@ -21,6 +24,7 @@ def prompt_classes():
         coursenum = input("Course number (EX: 161, 31, 2A): ")
         class_list.append((deptcode, coursenum))
 
+    print(class_list)
     return class_list
 
 def print_schedule(schedule: list[dict]):
