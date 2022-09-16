@@ -14,6 +14,8 @@ def prompt_classes():
 
     print(f"Class {len(class_list) + 1} Information")
     deptcode = input("Department code (EX: COMPSCI, ICS, MATH): ")
+    if deptcode == "ICS":
+        deptcode = "I&C SCI"
     coursenum = input("Course number (EX: 161, 31, 2A): ")
     class_list.append((deptcode, coursenum))
 
@@ -26,18 +28,24 @@ def prompt_classes():
             break
         print(f"\nClass {len(class_list) + 1} Information")
         deptcode = input("Department code (EX: COMPSCI, ICS, MATH): ")
+        if deptcode == "ICS":
+            deptcode = "I&C SCI"
         coursenum = input("Course number (EX: 161, 31, 2A): ")
         class_list.append((deptcode, coursenum))
 
-    print(class_list)
     return class_list
 
 def print_schedule(schedule: list[dict]):
     if schedule == []:
         print("There is no possible schedule in which your classes do not overlap.")
     for course in schedule:
-        print(f"{course['days']} {course['display_time'].lstrip()}")
+        print(f"\n{course['days']} {course['display_time'].lstrip()}")
         print(f"{course['sectionType']}: {course['course_title']}")
         print(f"{course['name']}")
         print(f"{course['sectionCode']}")
-        print()
+    print()
+
+def schedule_stats(schedule_tuple: tuple):
+    print(f"{schedule_tuple[1]} day(s) on campus each week.")
+    seconds = schedule_tuple[2]
+    print(f"{seconds // 3600} hour(s), {(seconds % 60)//60} minutes, and {(seconds % 3600)} seconds spent on campus each week.")

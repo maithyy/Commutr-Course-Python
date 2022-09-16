@@ -6,14 +6,11 @@ import sys
 
 BASE_URL = 'https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department='
 
-def encode_url(class_list: list[tuple]) -> list[str]:
-    '''Given a list of tuples of the classes, return a list of the class's corresponding encoded url's.'''
-    url_list = []
-    for deptcode, coursenum in class_list:
-        deptcode = urllib.parse.quote(deptcode, safe='')
-        coursenum = urllib.parse.quote(coursenum, safe='')
-        url_list.append(f"{BASE_URL}{deptcode}&courseNumber={coursenum}")
-    return url_list
+def encode_url(course: tuple) -> list[str]:
+    '''Given a tuples of the deptcode and coursenum, return the corresponding encoded url.'''
+    deptcode = urllib.parse.quote(course[0], safe='')
+    coursenum = urllib.parse.quote(course[1], safe='')
+    return f"{BASE_URL}{deptcode}&courseNumber={coursenum}"
 
 def get_from_web(url: str) -> dict or list:
     '''

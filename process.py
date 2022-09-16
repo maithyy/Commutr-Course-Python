@@ -1,5 +1,4 @@
-
-from cc_request import get_from_web
+from request import get_from_web
 from itertools import product
 import cc_ui as UI
 
@@ -96,7 +95,7 @@ def convert_time(time: str) -> tuple:
             start_num += 12
         end_num += 12
 
-    return (start_num*60*60+start_min, end_num*60*60+end_min)
+    return ((start_num*60*60)+(start_min * 60), (end_num*60*60)+(end_min*60))
 
 def time_overlap(course_1: dict, course_2: dict) -> bool:
     '''
@@ -153,7 +152,6 @@ def get_time_days(schedule) -> tuple:
         latest = max(course['times'][1] for course in day)
         earliest = min(course['times'][0] for course in day)
         time_gap += (latest-earliest)
-
     return schedule, len(day_times), time_gap
 
 def optimized_schedules(possible_schedules: list) -> list:
@@ -171,14 +169,14 @@ def optimized_schedules(possible_schedules: list) -> list:
     
     return schedules_data
 
+if __name__ == "__main__":
+    course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=STATS&courseNumber=67'))
+    course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=6B'))
+    course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=COMPSCI&courseNumber=122A'))
+    course_4 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=IN4MATX&courseNumber=43'))
 
-course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=STATS&courseNumber=67'))
-course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=6B'))
-course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=COMPSCI&courseNumber=122A'))
-course_4 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=IN4MATX&courseNumber=43'))
+    x = create_course_combos([course_1, course_2, course_3, course_4])
+    y = possible_schedules(x)
+    z = optimized_schedules(y)
 
-x = create_course_combos([course_1, course_2, course_3, course_4])
-y = possible_schedules(x)
-z = optimized_schedules(y)
-
-UI.print_schedule(z[0][0])
+    UI.print_schedule(z[0][0])
