@@ -107,13 +107,7 @@ def time_overlap(course_1: dict, course_2: dict) -> bool:
 
     s_1, e_1 = convert_time(course_1['display_time'])
     s_2, e_2 = convert_time(course_2['display_time'])
-    '''
-    if s_1 < s_2:
-        return e_1 < e_2
-    elif s_2 < s_1:
-        return s_2 >
-    '''
-
+    
     return s_1 <= s_2 <= e_1 or s_2 <= s_1 <= e_2  
 
 def check_possible(schedule: list) -> bool:
@@ -135,7 +129,7 @@ def possible_schedules(course_combos: list) -> list:
     possible = []
     for schedule in product(*course_combos):
         schedule = _flatten(schedule)
-        if not check_possible(schedule):
+        if check_possible(schedule):
             possible.append(schedule)
     return possible
 
