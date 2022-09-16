@@ -5,3 +5,4 @@ import cc_ui as UI
 
 if __name__ == "__main__":
     UI.welcome_message()
+    UI.prompt_classes()
