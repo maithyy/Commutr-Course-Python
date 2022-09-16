@@ -107,6 +107,12 @@ def time_overlap(course_1: dict, course_2: dict) -> bool:
 
     s_1, e_1 = convert_time(course_1['display_time'])
     s_2, e_2 = convert_time(course_2['display_time'])
+    '''
+    if s_1 < s_2:
+        return e_1 < e_2
+    elif s_2 < s_1:
+        return s_2 >
+    '''
 
     return s_1 <= s_2 <= e_1 or s_2 <= s_1 <= e_2  
 
@@ -172,11 +178,12 @@ def optimized_schedules(possible_schedules: list) -> list:
     return schedules_data
 
 
-course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=HISTORY&courseNumber=15C'))
-course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=51'))
-course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=45C'))
+course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=STATS&courseNumber=67'))
+course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=6B'))
+course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=COMPSCI&courseNumber=122A'))
+course_4 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=IN4MATX&courseNumber=43'))
 
-x = create_course_combos([course_1, course_2, course_3])
+x = create_course_combos([course_1, course_2, course_3, course_4])
 y = possible_schedules(x)
 z = optimized_schedules(y)
 

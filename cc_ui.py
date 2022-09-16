@@ -1,3 +1,8 @@
+'''
+To-do list:
+- Handle incorrect deptcode by checking if any number in it or check if in existing list of deptcodes
+'''
+
 def welcome_message():
     print("\nWelcome to Commutr Course on Python!\n")
     print("Given a set of classes from you, we'll construct an optimal commuter schedule for you!")
@@ -31,8 +36,6 @@ def print_schedule(schedule: list[dict]):
     if schedule == []:
         print("There is no possible schedule in which your classes do not overlap.")
     for course in schedule:
-        print("this da course!!!/n/n")
-        print(course)
         print(f"{course['days']} {course['display_time'].lstrip()}")
         print(f"{course['sectionType']}: {course['course_title']}")
         print(f"{course['name']}")
