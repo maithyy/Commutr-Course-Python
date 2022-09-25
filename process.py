@@ -79,7 +79,7 @@ def _flatten(course_combos):
 
 def convert_time(time: str) -> tuple:
     '''
-    Given a string in the example form ' 5:00-7:00p ', return a two tuple consisting of the start and end time in seconds.
+    Given a string in the example form ' 5:00-7:00p', return a two tuple consisting of the start and end time in seconds.
     '''
     if time[-1] == 'p':
         start, end = time[:-1].split('-')
@@ -139,20 +139,25 @@ def get_time_days(schedule) -> tuple:
     and the combined time it requires you to be on campus.
     '''
     time_gap = 0
-    
-    day_times = {}
+    days_on_campus = 0
+    day_times = {"M": [], "Tu": [], "W": [], "Th": [], "F": []}
 
-    for course in schedule:
-        if course['days'] in day_times:
-            day_times[course['days']].append(course)
-        else:
-            day_times[course['days']] = [course]
+    for day in day_times:
+        for course in schedule:
+            if day in course['days']:
+                day_times[day].append(course)
     
     for day in day_times.values():
-        latest = max(course['times'][1] for course in day)
-        earliest = min(course['times'][0] for course in day)
-        time_gap += (latest-earliest)
-    return schedule, len(day_times), time_gap
+        if day:
+            latest = max(course['times'][1] for course in day)
+            earliest = min(course['times'][0] for course in day)
+            time_gap += (latest-earliest)
+    
+    for lst in day_times.values():
+        if lst:
+            days_on_campus += 1
+
+    return schedule, days_on_campus, time_gap
 
 def optimized_schedules(possible_schedules: list) -> list:
     '''
@@ -164,12 +169,14 @@ def optimized_schedules(possible_schedules: list) -> list:
     for schedule in possible_schedules:
         schedules_data.append(get_time_days(schedule))
 
-    schedules_data = sorted(schedules_data, key=lambda x: x[1], reverse= True)
     schedules_data = sorted(schedules_data, key=lambda x: x[2])
+    schedules_data = sorted(schedules_data, key=lambda x: x[1])
     
     return schedules_data
 
 if __name__ == "__main__":
+    print(convert_time(" 5:00-7:00p"))
+    '''
     course_1 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=STATS&courseNumber=67'))
     course_2 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=I%26C%20SCI&courseNumber=6B'))
     course_3 = course_info(get_from_web('https://api.peterportal.org/rest/v0/schedule/soc?term=20222%20Fall&department=COMPSCI&courseNumber=122A'))
@@ -180,3 +187,4 @@ if __name__ == "__main__":
     z = optimized_schedules(y)
 
     UI.print_schedule(z[0][0])
+    '''

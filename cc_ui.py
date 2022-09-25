@@ -48,4 +48,4 @@ def print_schedule(schedule: list[dict]):
 def schedule_stats(schedule_tuple: tuple):
     print(f"{schedule_tuple[1]} day(s) on campus each week.")
     seconds = schedule_tuple[2]
-    print(f"{seconds // 3600} hour(s), {(seconds % 60)//60} minutes, and {(seconds % 3600)} seconds spent on campus each week.")
+    print(f"{seconds // 3600} hour(s) and {(seconds % 3600)//60} minutes spent on campus each week.")
